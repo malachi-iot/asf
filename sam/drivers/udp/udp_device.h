@@ -3,7 +3,7 @@
  *
  * \brief USB Device Driver for UDP. Compliant with common UDD driver.
  *
- * Copyright (c) 2012-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2012-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -302,14 +302,11 @@ __always_inline static void io_pin_init(uint32_t pin, uint32_t flags,
 #define udp_set_csr(ep, bits)                                    \
 	do {                                                       \
 		volatile uint32_t reg;                             \
-		volatile uint32_t nop_count;                       \
-		reg  = UDP->UDP_CSR[ep];                           \
+		reg = UDP->UDP_CSR[ep];                           \
 		reg |= UDP_REG_NO_EFFECT_1_ALL;                    \
 		reg |= (bits);                                     \
 		UDP->UDP_CSR[ep] = reg;                            \
-		for (nop_count = 0; nop_count < 20; nop_count ++) {\
-			__NOP();                                   \
-		}                                                  \
+		while ((UDP->UDP_CSR[ep] & bits) != bits);         \
 	} while (0)
 /*! Clears specified bit(s) in the UDP_CSR.
  *  \param ep   Endpoint number.
@@ -318,14 +315,11 @@ __always_inline static void io_pin_init(uint32_t pin, uint32_t flags,
 #define udp_clear_csr(ep, bits)                                  \
 	do {                                                       \
 		volatile uint32_t reg;                             \
-		volatile uint32_t nop_count;                       \
-		reg  = UDP->UDP_CSR[ep];                           \
+		reg = UDP->UDP_CSR[ep];                           \
 		reg |= UDP_REG_NO_EFFECT_1_ALL;                    \
 		reg &= ~(bits);                                    \
 		UDP->UDP_CSR[ep] = reg;                            \
-		for (nop_count = 0; nop_count < 20; nop_count ++) {\
-			__NOP();                                   \
-		}                                                  \
+		while (UDP->UDP_CSR[ep] & bits);                   \
 	} while (0)
 /*! Write specified bit(s) in the UDP_CSR.
  *  \param ep   Endpoint number.
@@ -334,15 +328,12 @@ __always_inline static void io_pin_init(uint32_t pin, uint32_t flags,
 #define udp_write_csr(ep, mask, bits)                            \
 	do {                                                       \
 		volatile uint32_t reg;                             \
-		volatile uint32_t nop_count;                       \
 		reg  = UDP->UDP_CSR[ep];                           \
 		reg |= UDP_REG_NO_EFFECT_1_ALL;                    \
 		reg &= ~(mask);                                    \
 		reg |= bits & mask;                                \
 		UDP->UDP_CSR[ep] = reg;                            \
-		for (nop_count = 0; nop_count < 20; nop_count ++) {\
-			__NOP();                                   \
-		}                                                  \
+		while ((UDP->UDP_CSR[ep] & bits) != bits);         \
 	} while (0);
 //! @}
 
@@ -379,6 +370,7 @@ __always_inline static void io_pin_init(uint32_t pin, uint32_t flags,
 #define  udd_reset_endpoint(ep)                                   \
 	do {                                                      \
 		Set_bits(UDP->UDP_RST_EP, UDP_RST_EP_EP0 << (ep));\
+		while (!(UDP->UDP_RST_EP & (UDP_RST_EP_EP0 << (ep))));\
 		Clr_bits(UDP->UDP_RST_EP, UDP_RST_EP_EP0 << (ep));\
 	} while(0)
   //! tests if the selected endpoint is being reset

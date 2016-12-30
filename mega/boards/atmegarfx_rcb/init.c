@@ -5,7 +5,7 @@
  *
  * To use this board, define BOARD=ATMEGA256RFR2_XPLAINED_PRO.
  *
- * Copyright (c) 2013-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2013-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -72,7 +72,7 @@ void board_init(void)
 	IOPORT_DIR_OUTPUT |  IOPORT_INIT_HIGH);
 	
 	ioport_set_port_dir(IOPORT_PORTE,KEY_RC_IO_MASK,IOPORT_DIR_OUTPUT);
-	ioport_set_port_level(IOPORT_PORTE,KEY_RC_IO_MASK,KEY_RC_IO_MASK);
+	ioport_set_port_level(IOPORT_PORTE,KEY_RC_IO_MASK,IOPORT_PIN_LEVEL_HIGH);
 	ioport_set_pin_dir(IOPORT_CREATE_PIN(PORTG , 2),IOPORT_DIR_INPUT);
 	ioport_set_pin_mode(IOPORT_CREATE_PIN(PORTG , 2), IOPORT_MODE_PULLUP);	
 
@@ -105,7 +105,7 @@ void board_init(void)
 #ifdef BREAKOUT_BOARD
   //Enable RCB_BB RS232 level converter
 	ioport_set_port_dir(IOPORT_PORTD,BB_SIO_MASK,IOPORT_DIR_OUTPUT);
-	ioport_set_port_level(IOPORT_PORTD,BB_SIO_MASK,BB_SIO_VAL);
+	ioport_set_port_level(IOPORT_PORTD,BB_SIO_MASK,IOPORT_PIN_LEVEL_HIGH);
 #endif
 #endif
 

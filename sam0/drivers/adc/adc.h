@@ -3,7 +3,7 @@
  *
  * \brief SAM Peripheral Analog-to-Digital Converter Driver
  *
- * Copyright (C) 2012-2015 Atmel Corporation. All rights reserved.
+ * Copyright (C) 2012-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -71,6 +71,7 @@
  *  - Atmel | SMART SAM R21
  *  - Atmel | SMART SAM D09/D10/D11
  *  - Atmel | SMART SAM DA1
+ *  - Atmel | SMART SAM HA1
  * \endif
  *
  * The outline of this documentation is as follows:
@@ -478,7 +479,7 @@ enum status_code adc_init(
 void adc_get_config_defaults(
 		struct adc_config *const config);
 
-#if (SAMD) || (SAMR21)
+#if (SAMD) || (SAMHA1) || (SAMR21)
 void adc_regular_ain_channel(
 		uint32_t *pin_array, uint8_t size);
 #endif
@@ -611,6 +612,11 @@ static inline enum status_code adc_enable(
 #   endif
 #endif
 
+	/* Disbale interrupt */
+	adc_module->INTENCLR.reg = ADC_INTENCLR_MASK;
+	/* Clear interrupt flag */
+	adc_module->INTFLAG.reg = ADC_INTFLAG_MASK;
+
 	adc_module->CTRLA.reg |= ADC_CTRLA_ENABLE;
 
 	while (adc_is_syncing(module_inst)) {
@@ -648,6 +654,11 @@ static inline enum status_code adc_disable(
 	while (adc_is_syncing(module_inst)) {
 		/* Wait for synchronization */
 	}
+
+	/* Disbale interrupt */
+	adc_module->INTENCLR.reg = ADC_INTENCLR_MASK;
+	/* Clear interrupt flag */
+	adc_module->INTFLAG.reg = ADC_INTFLAG_MASK;
 
 	adc_module->CTRLA.reg &= ~ADC_CTRLA_ENABLE;
 
@@ -816,7 +827,7 @@ static inline enum status_code adc_read(
 
 	Adc *const adc_module = module_inst->hw;
 
-#if (SAMD) || (SAMR21)
+#if (SAMD) || (SAMHA1) || (SAMR21)
 	while (adc_is_syncing(module_inst)) {
 		/* Wait for synchronization */
 	}
@@ -1101,7 +1112,7 @@ static inline void adc_disable_interrupt(struct adc_module *const module_inst,
  *		<th>Comments</th>
  *	</tr>
  * \if DEVICE_SAML21_SUPPORT
-  *	<tr>
+ *	<tr>
  *		<td>42451B</td>
  *		<td>12/2015</td>
  *		<td>Added support for SAM L22</td>

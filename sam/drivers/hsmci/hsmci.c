@@ -3,7 +3,7 @@
  *
  * \brief SAM HSMCI driver
  *
- * Copyright (c) 2012-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2012-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -166,7 +166,7 @@ static void hsmci_reset(void)
  */
 static void hsmci_set_speed(uint32_t speed, uint32_t mck)
 {
-#if (SAM4E)
+#if (SAM4E || SAMV70 || SAMV71 || SAME70 || SAMS70)
 	uint32_t clkdiv = 0;
 	uint32_t clkodd = 0;
 	// clock divider, represent (((clkdiv << 1) + clkodd) + 2)
@@ -367,7 +367,7 @@ void hsmci_select_device(uint8_t slot, uint32_t clock, uint8_t bus_width, bool h
 		HSMCI->HSMCI_CFG &= ~HSMCI_CFG_HSMODE;
 	}
 
-	hsmci_set_speed(clock, sysclk_get_cpu_hz());
+	hsmci_set_speed(clock, sysclk_get_peripheral_hz());
 
 	switch (slot) {
 	case 0:
@@ -943,17 +943,33 @@ bool hsmci_start_read_blocks(void *dest, uint16_t nb_block)
 
 	nb_data = nb_block * hsmci_block_size;
 
-	p_cfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN
-					| XDMAC_CC_MBSIZE_SINGLE
-					| XDMAC_CC_DSYNC_PER2MEM
-					| XDMAC_CC_CSIZE_CHK_1
-					| XDMAC_CC_DWIDTH_WORD
-					| XDMAC_CC_SIF_AHB_IF1
-					| XDMAC_CC_DIF_AHB_IF0
-					| XDMAC_CC_SAM_FIXED_AM
-					| XDMAC_CC_DAM_INCREMENTED_AM
-					| XDMAC_CC_PERID(CONF_HSMCI_XDMAC_CHANNEL);
-	p_cfg.mbr_ubc = nb_data / 4;
+	if((uint32_t)dest & 3) {
+		p_cfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN
+						| XDMAC_CC_MBSIZE_SINGLE
+						| XDMAC_CC_DSYNC_PER2MEM
+						| XDMAC_CC_CSIZE_CHK_1
+						| XDMAC_CC_DWIDTH_BYTE
+						| XDMAC_CC_SIF_AHB_IF1
+						| XDMAC_CC_DIF_AHB_IF0
+						| XDMAC_CC_SAM_FIXED_AM
+						| XDMAC_CC_DAM_INCREMENTED_AM
+						| XDMAC_CC_PERID(CONF_HSMCI_XDMAC_CHANNEL);
+		p_cfg.mbr_ubc = nb_data;
+		HSMCI->HSMCI_MR |= HSMCI_MR_FBYTE;
+	} else {
+		p_cfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN
+						| XDMAC_CC_MBSIZE_SINGLE
+						| XDMAC_CC_DSYNC_PER2MEM
+						| XDMAC_CC_CSIZE_CHK_1
+						| XDMAC_CC_DWIDTH_WORD
+						| XDMAC_CC_SIF_AHB_IF1
+						| XDMAC_CC_DIF_AHB_IF0
+						| XDMAC_CC_SAM_FIXED_AM
+						| XDMAC_CC_DAM_INCREMENTED_AM
+						| XDMAC_CC_PERID(CONF_HSMCI_XDMAC_CHANNEL);
+		p_cfg.mbr_ubc = nb_data / 4;
+		HSMCI->HSMCI_MR &= ~HSMCI_MR_FBYTE;
+	}
 	p_cfg.mbr_sa = (uint32_t)&(HSMCI->HSMCI_FIFO[0]);
 	p_cfg.mbr_da = (uint32_t)dest;
 	xdmac_configure_transfer(XDMAC, CONF_HSMCI_XDMAC_CHANNEL, &p_cfg);
@@ -1003,17 +1019,33 @@ bool hsmci_start_write_blocks(const void *src, uint16_t nb_block)
 
 	nb_data = nb_block * hsmci_block_size;
 
-	p_cfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN
-					| XDMAC_CC_MBSIZE_SINGLE
-					| XDMAC_CC_DSYNC_MEM2PER
-					| XDMAC_CC_CSIZE_CHK_1
-					| XDMAC_CC_DWIDTH_WORD
-					| XDMAC_CC_SIF_AHB_IF0
-					| XDMAC_CC_DIF_AHB_IF1
-					| XDMAC_CC_SAM_INCREMENTED_AM
-					| XDMAC_CC_DAM_FIXED_AM
-					| XDMAC_CC_PERID(CONF_HSMCI_XDMAC_CHANNEL);
-	p_cfg.mbr_ubc = nb_data / 4;
+	if((uint32_t)src & 3) {
+		p_cfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN
+						| XDMAC_CC_MBSIZE_SINGLE
+						| XDMAC_CC_DSYNC_MEM2PER
+						| XDMAC_CC_CSIZE_CHK_1
+						| XDMAC_CC_DWIDTH_BYTE
+						| XDMAC_CC_SIF_AHB_IF0
+						| XDMAC_CC_DIF_AHB_IF1
+						| XDMAC_CC_SAM_INCREMENTED_AM
+						| XDMAC_CC_DAM_FIXED_AM
+						| XDMAC_CC_PERID(CONF_HSMCI_XDMAC_CHANNEL);
+		p_cfg.mbr_ubc = nb_data;
+		HSMCI->HSMCI_MR |= HSMCI_MR_FBYTE;
+	} else {
+		p_cfg.mbr_cfg = XDMAC_CC_TYPE_PER_TRAN
+						| XDMAC_CC_MBSIZE_SINGLE
+						| XDMAC_CC_DSYNC_MEM2PER
+						| XDMAC_CC_CSIZE_CHK_1
+						| XDMAC_CC_DWIDTH_WORD
+						| XDMAC_CC_SIF_AHB_IF0
+						| XDMAC_CC_DIF_AHB_IF1
+						| XDMAC_CC_SAM_INCREMENTED_AM
+						| XDMAC_CC_DAM_FIXED_AM
+						| XDMAC_CC_PERID(CONF_HSMCI_XDMAC_CHANNEL);
+		p_cfg.mbr_ubc = nb_data / 4;
+		HSMCI->HSMCI_MR &= ~HSMCI_MR_FBYTE;
+	}
 	p_cfg.mbr_sa = (uint32_t)src;
 	p_cfg.mbr_da = (uint32_t)&(HSMCI->HSMCI_FIFO[0]);
 	xdmac_configure_transfer(XDMAC, CONF_HSMCI_XDMAC_CHANNEL, &p_cfg);

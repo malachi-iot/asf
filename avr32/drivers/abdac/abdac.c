@@ -15,7 +15,7 @@
  *
  * $Revision: 506 $
  * $Date: 2007-05-21 20:00:05 +0200 (Mon, 21 May 2007) $ \n
- * Copyright (c) 2014-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2014-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -130,11 +130,11 @@ int abdac_sink(volatile avr32_abdac_t *abdac,
   volatile unsigned long timeout = ABDAC_TIMEOUT;
 
   do {
-  } while (!(abdac->isr & ABDAC_BIT(ISR_TX_READY)) && timeout--);
-
-  if (0 == timeout) {
-    return -ETIMEOUT;
-  }
+    timeout--;
+	if (0 == timeout) {
+      return -ETIMEOUT;
+    }
+  } while (!(abdac->isr & ABDAC_BIT(ISR_TX_READY)));
 
   abdac->sdr = ABDAC_BF(SDR_CHANNEL0, ch0) | ABDAC_BF(SDR_CHANNEL1, ch1);
 

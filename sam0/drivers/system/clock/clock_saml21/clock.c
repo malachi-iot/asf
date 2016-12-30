@@ -3,7 +3,7 @@
  *
  * \brief SAM L21 Clock Driver
  *
- * Copyright (C) 2014-2015 Atmel Corporation. All rights reserved.
+ * Copyright (C) 2014-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -178,6 +178,11 @@ static inline void _system_clock_source_dfll_set_config_errata_9905(void)
 	_system_dfll_wait_for_sync();
 
 	OSCCTRL->DFLLMUL.reg = _system_clock_inst.dfll.mul;
+
+	/* Disable ONDEMAND mode while writing configurations */
+	OSCCTRL->DFLLCTRL.reg = OSCCTRL_DFLLCTRL_ENABLE;
+	_system_dfll_wait_for_sync();
+
 	OSCCTRL->DFLLVAL.reg = _system_clock_inst.dfll.val;
 
 	/* Write full configuration to DFLL control register */
@@ -345,7 +350,7 @@ void system_clock_source_xosc_set_config(
 			temp.bit.GAIN = 2;
 		} else if (config->frequency <= 16000000) {
 			temp.bit.GAIN = 3;
-		} else if (config->frequency <= 30000000) {
+		} else if (config->frequency <= 32000000) {
 			temp.bit.GAIN = 4;
 		}
 

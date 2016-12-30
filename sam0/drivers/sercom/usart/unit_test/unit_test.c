@@ -3,7 +3,7 @@
  *
  * \brief SAM USART Unit test
  *
- * Copyright (C) 2013-2015 Atmel Corporation. All rights reserved.
+ * Copyright (C) 2013-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -77,12 +77,16 @@
  *  - SAM L21 Xplained Pro board
  *  - SAM L22 Xplained Pro board
  *  - SAM DA1 Xplained Pro board
+ *  - SAM HA1G16A  Xplained Pro board
  *  - SAM C21 Xplained Pro board
+ *  - SAM R30 Xplained Pro board
  *
  * \section appdoc_sam0_usart_unit_test_setup Setup
  * The following connections has to be made using wires:
  * - SAM D21/DA1/D20 Xplained Pro board
  *  - \b TX/RX: EXT2 PIN17 (PA16) <--> EXT3 PIN17 (PB16)
+ * - SAM HA1G16A  Xplained Pro board
+ *  - \b TX/RX: EXT1 PIN14 (PB10) <--> EXT1 PIN12 (PA09)
  * - SAM R21 Xplained Pro board
  *  - \b TX/RX: EXT1 PIN11 (PA16) <--> EXT1 PIN17 (PB02)
  * - SAM L21 Xplained Pro board
@@ -91,6 +95,8 @@
  *  - \b TX/RX: EXT1 PIN13  (PA23) <--> EXT3 PIN3  (PA06)
  * - SAM C21 Xplained Pro board
  *  - \b TX/RX: EXT1 PIN11 (PA12) <--> EXT2 PIN4  (PA09)
+ * - SAM R30 Xplained Pro board
+ *  - \b TX/RX: EXT1 PIN7 (PA18) <--> EXT1 PIN12  (PA17)
  *
  * To run the test:
  *  - Connect the SAM Xplained Pro board to the computer using a
@@ -227,7 +233,7 @@ static void run_transfer_single_9bit_char_test(const struct test_case *test)
 	usart_disable(&usart_tx_module);
 	usart_tx_config.character_size = USART_CHARACTER_SIZE_9BIT;
 	usart_init(&usart_tx_module, CONF_TX_USART,	&usart_tx_config);
-	
+
 	/* Enable USART */
 	usart_enable(&usart_rx_module);
 	usart_enable(&usart_tx_module);
@@ -249,7 +255,7 @@ static void run_transfer_single_9bit_char_test(const struct test_case *test)
 	usart_disable(&usart_tx_module);
 	usart_tx_config.character_size = USART_CHARACTER_SIZE_8BIT;
 	usart_init(&usart_tx_module, CONF_TX_USART,	&usart_tx_config);
-	
+
 	/* Enable USART */
 	usart_enable(&usart_rx_module);
 	usart_enable(&usart_tx_module);

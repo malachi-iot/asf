@@ -3,7 +3,7 @@
  *
  * \brief SAM Analog Comparator Driver
  *
- * Copyright (c) 2012-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2012-2016 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -70,6 +70,7 @@
  *  - Atmel | SMART SAM L21/L22
  *  - Atmel | SMART SAM DA1
  *  - Atmel | SMART SAM C20/C21
+ *  - Atmel | SMART SAM HA1
  *
  * The outline of this documentation is as follows:
  *  - \ref asfdoc_sam0_ac_prerequisites
@@ -121,7 +122,7 @@
  *    </tr>
  *    <tr>
  *      <td>FEATURE_AC_RUN_IN_STANDY_PAIR_COMPARATOR</td>
- *      <td>SAM D20/L22/D21/D10/D11/R21/DAx</td>
+ *      <td>SAM D20/L22/D21/D10/D11/R21/DA1/HA1</td>
  *    </tr>
  * </table>
  * \note The specific features are only available in the driver when the
@@ -308,14 +309,14 @@ extern "C" {
  * Define AC driver feature set according to different device family.
  * @{
  */
-#if (SAML21) || (SAML22) || (SAMC20) || (SAMC21) || defined(__DOXYGEN__)
+#if (SAML21) || (SAML22) || (SAMC20) || (SAMC21) || (SAMR30) || defined(__DOXYGEN__)
    /** Setting of hysteresis level */
 #  define FEATURE_AC_HYSTERESIS_LEVEL
    /** SYNCBUSY scheme version 2 */
 #  define FEATURE_AC_SYNCBUSY_SCHEME_VERSION_2
 #endif
 
-#if (SAML21) || (SAML22) || (SAMC20) || (SAMC21) || defined(__DOXYGEN__)
+#if (SAML21) || (SAML22) || (SAMC20) || (SAMC21) || (SAMR30) || defined(__DOXYGEN__)
  	/** Run in standby feature for each comparator */
 #  define FEATURE_AC_RUN_IN_STANDY_EACH_COMPARATOR
 #else
@@ -493,7 +494,7 @@ enum ac_chan_neg_mux {
 	AC_CHAN_NEG_MUX_BANDGAP    = AC_COMPCTRL_MUXNEG_BANDGAP,
 #if !(SAML22)
 	/**
-	 * For SAM D20/D21/D10/D11/R21/DA1:
+	 * For SAM D20/D21/D10/D11/R21/DA1/HA1:
 	 *     Negative comparator input is connected to the channel's internal DAC
 	 *     channel 0 output.
 	 * For SAM L21/C20/C21:
@@ -650,7 +651,7 @@ struct ac_config {
 	bool run_in_standby[AC_PAIRS];
 #endif
 
-#if (SAMD) || (SAMR21)
+#if (SAMD) || (SAMHA1) || (SAMR21)
 	/** Digital source generator for AC GCLK */
 	enum gclk_generator dig_source_generator;
 	/** Analog source generator for AC GCLK */
@@ -820,7 +821,7 @@ static inline void ac_get_config_defaults(
 		config->run_in_standby[i] = false;
 	}
 #endif
-#if (SAMD) || (SAMR21)
+#if (SAMD) || (SAMHA1) || (SAMR21)
 	config->dig_source_generator = GCLK_GENERATOR_0;
 	config->ana_source_generator = GCLK_GENERATOR_3;
 #else
@@ -873,6 +874,11 @@ static inline void ac_disable(
 	while (ac_is_syncing(module_inst)) {
 		/* Wait until synchronization is complete */
 	}
+
+	/* Disbale interrupt */
+	ac_module->INTENCLR.reg = AC_INTENCLR_MASK;
+	/* Clear interrupt flag */
+	ac_module->INTFLAG.reg = AC_INTFLAG_MASK;
 
 	/* Write the new comparator module control configuration */
 	ac_module->CTRLA.reg &= ~AC_CTRLA_ENABLE;
